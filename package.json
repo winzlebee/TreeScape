@@ -1,0 +1,24 @@
+{
+  "name": "treescape",
+  "version": "1.0.0",
+  "description": "TreeScape is a game of exploration",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:client": "webpack",
+    "start:server": "node ./server/server.js",
+    "start:client": "webpack-dev-server"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "simplex-noise": "^2.4.0",
+    "three": "^0.115.0",
+    "ws": "^7.2.3"
+  },
+  "devDependencies": {
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  }
+}
