@@ -1,5 +1,6 @@
 const THREE = require('three');
 import { generate, generateTrees } from './terrain.js';
+import * as CONTROLS from './controls.js';
 
 const ws = new WebSocket('ws://localhost:3420/');
 
@@ -26,87 +27,96 @@ const settings = {
     skyColour : 0x87CEEB
 }
 
-// Create the rendering engine
-var scene = new THREE.Scene();
-scene.fog = new THREE.Fog(settings.skyColour, settings.unitSize / 4, settings.unitSize / 2);
+var scene, camera, renderer, controls;
 
-var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+var plane, sphere;
 
-camera.position.z = 5;
-camera.position.y = 3;
+var clock;
 
-camera.lookAt(0, 0, 0);
+function init() {
+    // Create the rendering engine
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(settings.skyColour, settings.unitSize / 4, settings.unitSize / 2);
 
-var renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
+    camera.position.z = 5;
+    camera.position.y = 3;
 
-// Setup the scene
-var ambient = new THREE.AmbientLight(settings.skyColour, 0.4);
-var sunlight = new THREE.DirectionalLight(0xffffcc, 0.5);
-sunlight.position.set(-32, 32, 0);
+    camera.lookAt(0, 0, 0);
 
-var lightTarget = new THREE.Object3D();
-sunlight.target = lightTarget;
-sunlight.target.position.set(0, 0, 0);
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+    
+    controls = new CONTROLS.FirstPersonCamera(camera, renderer.domElement);
 
-sunlight.castShadow = true;
-sunlight.shadow.camera.near = 1;
-sunlight.shadow.camera.far = 50;
-sunlight.shadow.bias = 0.001;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
 
-sunlight.shadow.mapSize.width = 2048;
-sunlight.shadow.mapSize.height = 2048;
+    // Setup the scene
+    var ambient = new THREE.AmbientLight(settings.skyColour, 0.4);
+    var sunlight = new THREE.DirectionalLight(0xffffcc, 0.5);
+    sunlight.position.set(-32, 32, 0);
 
-var skyGeometry = new THREE.BoxGeometry();
-var sphere = new THREE.SphereGeometry();
-var groundPlane = new THREE.PlaneGeometry(settings.unitSize, settings.unitSize, settings.unitSize * 2, settings.unitSize * 2);
+    var lightTarget = new THREE.Object3D();
+    sunlight.target = lightTarget;
+    sunlight.target.position.set(0, 0, 0);
 
-generate(groundPlane, settings);
-groundPlane.rotateX(-Math.PI / 2);
+    sunlight.castShadow = true;
+    sunlight.shadow.camera.near = 1;
+    sunlight.shadow.camera.far = 50;
+    sunlight.shadow.bias = 0.001;
 
-var skyMat = new THREE.MeshBasicMaterial({ color: settings.skyColour, side: THREE.BackSide });
-var planeMat = new THREE.MeshStandardMaterial({ color: 0x26c94c });
+    sunlight.shadow.mapSize.width = 2048;
+    sunlight.shadow.mapSize.height = 2048;
 
-var sphereMat = new THREE.MeshStandardMaterial({ color: 0xFFFFF });
+    var skyGeometry = new THREE.BoxGeometry();
+    var sphereGeom = new THREE.SphereGeometry();
+    var groundPlane = new THREE.PlaneGeometry(settings.unitSize, settings.unitSize, settings.unitSize * 2, settings.unitSize * 2);
 
-var sky = new THREE.Mesh( skyGeometry, skyMat );
-var plane = new THREE.Mesh( groundPlane, planeMat );
-var sphere = new THREE.Mesh( sphere, sphereMat );
+    generate(groundPlane, settings);
+    groundPlane.rotateX(-Math.PI / 2);
 
-sphere.castShadow = true;
+    var skyMat = new THREE.MeshBasicMaterial({ color: settings.skyColour, side: THREE.BackSide });
+    var planeMat = new THREE.MeshStandardMaterial({ color: 0x26c94c });
 
-plane.receiveShadow = true;
+    var sphereMat = new THREE.MeshStandardMaterial({ color: 0xFFFFF });
 
-sky.scale.set(50, 50, 50);
+    var sky = new THREE.Mesh( skyGeometry, skyMat );
+    plane = new THREE.Mesh( groundPlane, planeMat );
+    sphere = new THREE.Mesh( sphereGeom, sphereMat );
 
-generateTrees(plane, 512);
+    sphere.castShadow = true;
 
-scene.add(sky);
-scene.add(plane);
-scene.add(sphere);
+    plane.receiveShadow = true;
 
-scene.add(ambient);
-scene.add(sunlight);
-scene.add(lightTarget);
+    sky.scale.set(50, 50, 50);
 
-var clock = new THREE.Clock();
+    generateTrees(plane, 512);
+
+    scene.add(sky);
+    scene.add(plane);
+    scene.add(sphere);
+
+    scene.add(ambient);
+    scene.add(sunlight);
+    scene.add(lightTarget);
+
+    clock = new THREE.Clock();
+
+}
 
 // Request new frames from the renderer every frame
 function animate() {
     requestAnimationFrame( animate );
 
-    camera.position.z = Math.sin(clock.getElapsedTime() * settings.orbitSpeed) * settings.orbitRadius;
-    camera.position.x = Math.cos(clock.getElapsedTime() * settings.orbitSpeed) * settings.orbitRadius;
-
     sphere.position.y = Math.sin(clock.getElapsedTime()) + 2;
 
-    camera.lookAt(0, 0, 0);
-
-	renderer.render( scene, camera );
+    renderer.render( scene, camera );
+    
+    controls.update(clock.getDelta());
 }
 
+init();
 animate();
