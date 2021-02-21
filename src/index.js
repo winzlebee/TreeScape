@@ -48,6 +48,8 @@ function init() {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
+
+  renderer.domElement.tabIndex = 0;
   
   controls = new CONTROLS.FirstPersonCamera(camera, renderer.domElement);
   
@@ -115,7 +117,9 @@ function animate() {
   
   renderer.render( scene, camera );
   
-  controls.update(clock.getDelta());
+  let delta = clock.getDelta();
+
+  controls.update(delta);
 }
 
 init();
