@@ -1,5 +1,5 @@
 const THREE = require('three');
-import { generate, generateTrees } from './terrain.js';
+import * as Terrain from './terrain.js';
 import * as CONTROLS from './controls.js';
 
 const ws = new WebSocket('ws://localhost:3420/');
@@ -75,11 +75,10 @@ function init() {
   
   var skyGeometry = new THREE.BoxGeometry();
   var sphereGeom = new THREE.SphereGeometry();
-  var groundPlane = new THREE.PlaneGeometry(settings.unitSize, settings.unitSize, settings.unitSize * 2, settings.unitSize * 2);
-  
-  generate(groundPlane, settings);
-  groundPlane.rotateX(-Math.PI / 2);
-  
+
+  // Generate 1 unit of terrian, centered around the player
+  var groundPlane = new Terrain.TerrainTile(settings, 1);
+    
   var skyMat = new THREE.MeshBasicMaterial({ color: settings.skyColour, side: THREE.BackSide });
   var planeMat = new THREE.MeshStandardMaterial({ color: 0x26c94c });
   
@@ -95,7 +94,7 @@ function init() {
   
   sky.scale.set(50, 50, 50);
   
-  generateTrees(plane, 512);
+  Terrain.generateTrees(plane, 512);
   
   scene.add(sky);
   scene.add(plane);

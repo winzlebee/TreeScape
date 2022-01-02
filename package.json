@@ -13,12 +13,12 @@
   "license": "ISC",
   "dependencies": {
     "simplex-noise": "^2.4.0",
-    "three": "^0.115.0",
+    "three": "^0.136.0",
     "ws": "^7.2.3"
   },
   "devDependencies": {
     "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.7.2"
   }
 }
